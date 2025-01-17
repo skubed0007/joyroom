@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>post a blog and see your previous blogs</title>
+  <link rel="stylesheet" href="blogs.css">
+  <script>
+    let username = localStorage.getItem('username'); // Get username from local storage
+    // Fetch and display blogs for the logged-in user
+    function loadBlogs() {
+      fetch(`http://localhost:3000/blogs/${username}`)
+        .then(response => response.json())
+        .then(data => {
+          const blogList = document.getElementById('blog-list');
+          blogList.innerHTML = ''; // Clear the list
+          data.forEach(blog => {
+            const listItem = document.createElement('li');
+            listItem.textContent = `${blog.blogName}: ${blog.content.substring(0, 100)}...`;
+            blogList.appendChild(listItem);
+          });
+        });
+    }
+
+    // Handle the submission of a new blog
+    function submitBlog() {
+      const blogName = document.getElementById('blogName').value;
+      const content = document.getElementById('content').value;
+
+      fetch('http://localhost:3000/publish', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, blogName, content }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert(data.message);
+        loadBlogs(); // Reload the list of blogs after publishing
+      });
+    }
+
+    window.onload = function() {
+      if (!username) {
+        window.location.href = 'index.html'; // Redirect to the sign-in page
+      } else {
+        loadBlogs(); // Load and display the blogs on page load
+      }
+    }
+  </script>
+</head>
+<body>
+  <h1>Welcome to the Blog Writer</h1>
+  <div>
+    <h2>Write a new blog</h2>
+    <input type="text" id="blogName" placeholder="Blog Name" required>
+    <textarea id="content" placeholder="Your blog content here" required></textarea>
+    <button onclick="submitBlog()">Publish Blog</button>
+  </div>
+
+  <h2>My Blogs</h2>
+  <ul id="blog-list">
+    <!-- List of user's blogs will appear here -->
+  </ul>
+</body>
+</html>
